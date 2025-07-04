@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📚 Bookish</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #7F7FD5, #86A8E7, #91EAE4);
+      color: #222;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    input {
+      padding: 0.7rem;
+      width: 60%;
+      max-width: 400px;
+      border: none;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.7rem 1.2rem;
+      background: #4A00E0;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+    .book {
+      background: white;
+      padding: 1rem;
+      border-radius: 1rem;
+      max-width: 200px;
+      box-shadow: 0 0 10px #00000022;
+      text-align: left;
+    }
+    .book img {
+      width: 100%;
+      border-radius: 0.5rem;
+    }
+    .book h3 {
+      font-size: 1rem;
+      margin: 0.5rem 0;
+    }
+    .book p {
+      font-size: 0.85rem;
+      color: #333;
+    }
+    .book a {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #4A00E0;
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 Bookish</h1>
+  <input type="text" id="search" placeholder="Search books or authors..." />
+  <button onclick="searchBooks()">Search</button>
+  <div id="results" class="results"></div>
+
+  <script>
+    async function searchBooks() {
+      const query = document.getElementById('search').value.trim();
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = 'Searching...';
+      if (!query) return;
+
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        resultsDiv.innerHTML = '';
+
+        if (!data.items || data.items.length === 0) {
+          resultsDiv.innerHTML = 'No books found 😕';
+          return;
+        }
+
+        data.items.slice(0, 12).forEach(book => {
+          const info = book.volumeInfo;
+          const div = document.createElement('div');
+          div.className = 'book';
+          div.innerHTML = `
+            <img src="${info.imageLinks?.thumbnail || 'https://via.placeholder.com/128x180?text=No+Cover'}" alt="Cover">
+            <h3>${info.title}</h3>
+            <p><strong>Author:</strong> ${info.authors?.join(', ') || 'Unknown'}</p>
+            <a href="${info.previewLink}" target="_blank">📖 Preview</a>
+          `;
+          resultsDiv.appendChild(div);
+        });
+      } catch (err) {
+        resultsDiv.innerHTML = 'Something went wrong 😓';
+        console.error(err);
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
